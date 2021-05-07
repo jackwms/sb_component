@@ -1,0 +1,3 @@
+exports.createTable = (name) => `
+    ${name}
+`

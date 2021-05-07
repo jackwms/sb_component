@@ -1,146 +1,103 @@
 const fs = require("fs");
 const path = require("path");
 const inquirer = require("inquirer");
-//引入配置文件
-const profileData = require("./template/data")
-//引入文件模板
-let template = require("./template/template");
+//引入文件模板,personal template from yqg;
 let vue_component = require("./template/vue-component");
-let page = template.page;
+let vue_modal = require('./template/vue-modal');
 let component = vue_component.createComponent;
 
-const PageConfig = {
-    name: 'firstPageComponet',
-    pageUrl: '/Users/yqg/Desktop/workspace/szl_personal_project/hello-xxx/page',
-}
+const names = [
+    'Vue空组件',
+    'Vue空弹框',
+    'Vue空table'
+];
 
-function easyCreateFile(PageConfig) {
+let attenStr = ''
+const message = names.forEach((_, index) => {
+    attenStr += ` \(${index + 1}). ${_} `;
+})
 
-    createFile(pageUrl);
-
-}
-
-function createFile(pageUrl) {
-    // 创建目录 TODO 增加判断文件夹重复
-    fs.mkdirSync(path.dirname(pageUrl));
-}
-
-var questions = [
+const questions = [
     {
         type: 'input',
         name: 'zl',
-        message: "请输入你要创建的组件？（1）Vue空组件"
+        message: `请输入你要创建的组件？${attenStr}，enter number`
     },
     {
         type: 'input',
         name: 'component_name',
-        message: "请输入你要创建的组件名字"
+        message: "请输入你要创建的组件名字，enter component name"
     },
     {
         type: 'input',
-        name: 'component_url',
-        message: "请输入你要创建的组件的绝对路径"
+        name: 'component_path',
+        message: "请输入你要创建的组件的绝对路径，enter component path"
     }
 ]
 
+
 inquirer.prompt(questions).then(answers => {
+    const config = {
+        name: answers['component_name'],
+        pageUrl: answers['component_path'],
+    }
+    // TODO 考虑是否需要增加分离版本separated和project版本（暂无需要）；
+    // TODO 需要增加一个table组件
     switch (answers['zl']) {
         case '1':
-            addFileContent({
-                name: answers['component_name'],
-                pageUrl: answers['component_url'],
-            });
+            vue_component_func(config);
             break;
-    
+        case '2':
+            vue_modal_func(config);
+            break;
         default:
             console.log('输入的指令无效。。。');
             break;
     }
 })
 
-function fileExist(PageConfig) {
+function fileExist(PageConfig, hz = 'vue') {
     const { name, pageUrl } = PageConfig;
-    fs.stat(pageUrl + `/${name}.vue`, (err,stats) => {
+    fs.stat(pageUrl + `/${name}.${hz}`, (err, stats) => {
         console.log(err, stats, "????");
     })
 }
 
-function addFileContent(PageConfig) {
+function concatUrlAndName(PageConfig, hz) {
+    const { name, pageUrl } = PageConfig;
+    return `${pageUrl}/${name}.${hz}`;
+}
+
+function vue_component_func(PageConfig, buffer) {
+    const buffer = component(PageConfig.name);
+    addFileContent(PageConfig, buffer);
+}
+
+function addFileContent(PageConfig, buffer, hz = 'vue') {
     const { name, pageUrl } = PageConfig;
     const exist = fileExist(PageConfig);
-    if (!exist) {
-        console.log(`该文件${name}已在${pageUrl}目录下存在了！`);
-        return false;
-    }
     fs.mkdir(pageUrl, { recursive: true }, (err) => {
         if (err) {
             console.log(err);
             return false
         };
-        const buffer = component(name);
-        fs.writeFile(pageUrl + `/${name}.vue`, buffer, function (err) {
+        fs.writeFile(concatUrlAndName(PageConfig, hz), buffer, err=> {
             if (err) {
                 console.log(err);
                 return false
             } else {
-                console.log(`${pageUrl}/${name}.vue创建成功----`);
+                console.log(`目录${pageUrl} ---- ${name}添加成功，codingggggg！`);
             }
         });
     });
 }
 
+function vue_modal_func(PageConfig) {
+    const buffer = 'woshiJS';
+    // TODO buffer 增加一个弹框组件 可以自定义弹框的宽高
+    addFileContent(PageConfig, buffer);
+}
 
 
-
-// 递归创建目录 同步方法
-// function mkdirsSync(dirname) {
-//     if (fs.existsSync(dirname)) {
-//         return true;
-//     } else {
-//         if (mkdirsSync(path.dirname(dirname))) {
-//             fs.mkdirSync(dirname);
-//             return console.log(`创建目录成功-${dirname}`);
-//         }
-//     }   
-// }
-// //遍历配置文件并调用创建目录方法
-// profileData.data.forEach((item) => {
-//     if(item.folder){
-//         mkdirsSync(`./pages/${item.folder}`)
-//     }
-// })
-
-// //遍历创建文件
-// profileData.data.forEach((item) => {
-//     if(item.file){
-//         //创建API文件
-//         if(item.file.indexOf("api") != -1){
-//             fs.writeFile(`./pages/${item.folder}/${item.file}`, api, function(err){
-//                 if(err){
-//                     return console.log('创建失败', err);
-//                 }
-//                 console.log(`创建文件成功！-${item.file}`);
-//             })
-//         }
-
-//         //创建route文件
-//         if (item.file.indexOf("route") != -1){
-//             fs.writeFile(`./pages/${item.folder}/${item.file}`, route, function(err){
-//                 if(err){
-//                     return console.log('创建失败', err);
-//                 }
-//                 console.log(`创建文件成功！-${item.file}`);
-//             })
-//         }
-
-//         //创建主体页面
-//         if (item.className){
-//             fs.writeFile(`./pages/${item.folder}/${item.file}`, page(item.className), function(err){
-//                 if(err){
-//                     return console.log('创建失败', err);
-//                 }
-//                 console.log(`创建文件成功！-${item.file}`);
-//             })
-//         } 
-//     }
-// })
+// TODO 需要判断指定文件夹下是否有重复文件 防止被覆盖掉
+// 
