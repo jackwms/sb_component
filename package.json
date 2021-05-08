@@ -1,8 +1,11 @@
 {
-  "name": "node-to-code",
-  "version": "1.0.0",
+  "name": "sb_component",
+  "version": "1.0.3",
   "description": "自动生成CV代码",
   "main": "index.js",
+  "bin": {
+    "sb": "./bin/sb.js"
+  },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
@@ -21,6 +24,7 @@
     "react-dom": "^16.13.1"
   },
   "dependencies": {
+    "commander": "^7.2.0",
     "inquirer": "^8.0.0",
     "vscode-debugadapter": "^1.40.0"
   }
